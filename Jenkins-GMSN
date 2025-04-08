@@ -1,0 +1,43 @@
+pipeline{
+    agent any
+     tools{
+        maven 'Maven-3.6.1'
+} 
+    environment{
+        PATH = "/opt/maven3/bin:$PATH"
+    }
+    stages{
+        stage("Git Checkout"){
+            steps{
+                
+                git credentialsId: 'javahome2', url: 'https://github.com/Sowmya2025/myweb.git'
+            }
+        }
+        stage("Maven Build"){
+            steps{
+                sh "mvn clean sonar:sonar package"
+                
+            }
+        }
+        stage('Upload War To Nexus'){
+            steps{
+                  nexusArtifactUploader artifacts: [
+                       [
+                            artifactId: 'myweb', 
+                            classifier: '', 
+                            file: "target/myweb-8.2.0.war", 
+                            type: 'war'
+                       ]
+                  ], 
+                  credentialsId: 'nexus3', 
+                  groupId: 'in.javahome', 
+                  nexusUrl: '172.31.36.4:8081', 
+                  nexusVersion: 'nexus3', 
+                  protocol: 'http', 
+                  repository: 'sample-release
+                  version: '8.2.0'  
+              }
+            }
+      
+    }
+}
